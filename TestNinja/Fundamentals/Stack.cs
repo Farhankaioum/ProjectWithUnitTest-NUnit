@@ -16,7 +16,7 @@ namespace TestNinja.Fundamentals
             
             _list.Add(obj);
         }
-
+       
         public T Pop()
         {
             if (_list.Count == 0)
