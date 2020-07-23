@@ -47,12 +47,13 @@ namespace TestNinja.UnitTestsExtra
         {
             // Arrange
             var id = Guid.Empty;
+            
+
+            // Act
             _logger.ErrorLogged += (sender, args) =>
             {
                 id = args;
             };
-
-            // Act
             _logger.Log("a");
 
             // Assertion
