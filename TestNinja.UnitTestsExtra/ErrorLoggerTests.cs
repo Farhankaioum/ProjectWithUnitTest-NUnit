@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using TestNinja.Fundamentals;
+using TestNinja.Mocking;
 
 namespace TestNinja.UnitTestsExtra
 {
@@ -38,6 +39,24 @@ namespace TestNinja.UnitTestsExtra
             // assert
             Assert.That(() => _logger.Log(error), Throws.ArgumentNullException);
             Assert.That(() => _logger.Log(error), Throws.Exception.TypeOf<ArgumentNullException>());
+        }
+
+        // Test of Event handler check
+        [Test]
+        public void Log_ValidError_RaiseErrorLoggedEvent()
+        {
+            // Arrange
+            var id = Guid.Empty;
+            _logger.ErrorLogged += (sender, args) =>
+            {
+                id = args;
+            };
+
+            // Act
+            _logger.Log("a");
+
+            // Assertion
+            Assert.That(id, Is.Not.EqualTo(Guid.Empty));
         }
     }
 }
