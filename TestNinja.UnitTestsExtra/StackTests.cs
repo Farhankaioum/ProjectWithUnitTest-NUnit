@@ -82,10 +82,11 @@ namespace TestNinja.UnitTestsExtra
             _stack.Push("three");
 
             // Act
-            _stack.Pop();
+            var result = _stack.Pop();
 
             // Assert
             Assert.That(_stack.Count, Is.EqualTo(2));
+            Assert.That(result, Is.EqualTo("three"));
 
         }
 
@@ -118,10 +119,12 @@ namespace TestNinja.UnitTestsExtra
         [Test]
         public void Peek_StackWithObjects_DoesNotRemoveTheObjectOnTopOfTheStack()
         {
-            // Act
+            // Arrange
             _stack.Push("One");
             _stack.Push("two");
             _stack.Push("three");
+
+            // Act
             _stack.Peek();
 
             // Assert
