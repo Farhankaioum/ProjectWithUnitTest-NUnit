@@ -1,4 +1,5 @@
-﻿namespace TestNinja.Mocking
+﻿using TestNinja.Mocking;
+namespace TestNinja.Mocking
 {
     public class Program
     {
