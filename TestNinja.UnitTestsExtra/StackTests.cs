@@ -1,7 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
-using System.Linq;
-using System.Text;
 using TestNinja.Fundamentals;
 
 namespace TestNinja.UnitTestsExtra
