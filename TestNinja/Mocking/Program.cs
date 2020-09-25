@@ -1,4 +1,5 @@
-﻿using TestNinja.Mocking;
+﻿using System;
+using TestNinja.Mocking;
 namespace TestNinja.Mocking
 {
     public class Program
@@ -7,6 +8,7 @@ namespace TestNinja.Mocking
         {
             var service = new VideoService();
             var title = service.ReadVideoTitle();
+
         }
     }
 }

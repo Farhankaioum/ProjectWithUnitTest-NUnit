@@ -9,11 +9,22 @@ namespace TestNinja.Mocking
         public static string OverlappingBookingsExist(Booking booking, IBookingRepository repository)
         {
             if (booking.Status == "Cancelled")
-                return string.Empty;
+                return string.Empty; 
 
-            var bookings = repository.GetActiveBookings(booking.Id);
+           // var bookings = repository.GetActiveBookings(booking.Id);
+
+            var bookingsTest = new List<Booking>
+            {
+                new Booking
+                {
+                     Id = 2,
+                    ArrivalDate = new DateTime(2020, 1, 10, 14, 0, 0),
+                    DepartureDate = new DateTime(2020, 1, 15, 10, 0, 0),
+                    Reference = "a"
+                }
+            };
             var overlappingBooking =
-                bookings.FirstOrDefault(
+                bookingsTest.FirstOrDefault(
                     b =>
                         booking.ArrivalDate < b.DepartureDate &&
                         b.ArrivalDate < booking.DepartureDate);
