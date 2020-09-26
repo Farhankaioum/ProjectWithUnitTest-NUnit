@@ -17,35 +17,42 @@ namespace TestNinja.UnitTestsExtra.Mocking
         private HouseKeeperService _services;
 
         private DateTime date = new DateTime(2020, 10, 2);
+        private  string _statementFileName;
 
         private Housekeeper _keeper;
 
         [SetUp]
         public void SetUp()
         {
+            _keeper = new Housekeeper { Email = "a", FullName = "b", Oid = 1, StatementEmailBody = "something" };
+
             _unitOfWork = new Mock<IUnitOfWork>();
+            _unitOfWork.Setup(un => un.Query<Housekeeper>()).Returns(new List<Housekeeper> {
+                _keeper
+            }.AsQueryable());
+
+            _statementFileName = "filename";
             _statementGenerator = new Mock<IStatementGenerator>();
+            _statementGenerator.Setup(sg => sg.SaveStatement(_keeper.Oid, _keeper.FullName, date))
+                .Returns(() => _statementFileName);
+
             _emailSender = new Mock<IEmailSender>();
             _xtraMessageBox = new Mock<IXtraMessageBox>();
             _services = new HouseKeeperService(_unitOfWork.Object, _statementGenerator.Object, _emailSender.Object, _xtraMessageBox.Object);
 
-            _keeper = new Housekeeper { Email = "a", FullName = "b", Oid = 1, StatementEmailBody = "something" };
-
+           
         }
 
         [Test]
         public void SendStatementEmails_WhenCalled_GenerateStatements()
         {
             // Arrange
-            _unitOfWork.Setup(un => un.Query<Housekeeper>()).Returns(new List<Housekeeper> {
-                _keeper
-            }.AsQueryable());
 
             // Act
             _services.SendStatementEmails(date);
 
             // Assert
-            _statementGenerator.Verify(s => s.SaveStatement(1, "b", date));
+            _statementGenerator.Verify(s => s.SaveStatement(_keeper.Oid, _keeper.FullName, date));
         }
 
         [Test]
@@ -56,32 +63,24 @@ namespace TestNinja.UnitTestsExtra.Mocking
         {
             // Arrange
             _keeper.Email = email;
-            _unitOfWork.Setup(un => un.Query<Housekeeper>()).Returns(new List<Housekeeper> {
-                _keeper
-            }.AsQueryable());
 
             // Act
             _services.SendStatementEmails(date);
 
             // Assert
-            _statementGenerator.Verify(s => s.SaveStatement(1, "b", date), Times.Never);
+            _statementGenerator.Verify(s => s.SaveStatement(_keeper.Oid, _keeper.FullName, date), Times.Never);
         }
 
         [Test]
         public void SendStatementEmails_WhenCalled_SendingAEmail()
         {
             // Arrange
-            _unitOfWork.Setup(un => un.Query<Housekeeper>()).Returns(new List<Housekeeper> {
-                _keeper
-            }.AsQueryable());
-
-            _statementGenerator.Setup(sg => sg.SaveStatement(_keeper.Oid, _keeper.FullName, date)).Returns("ab");
-
+            
             // Act
             _services.SendStatementEmails(date);
 
             // Assert
-            _emailSender.Verify(s => s.EmailFile(_keeper.Email, _keeper.StatementEmailBody, "ab", It.IsAny<string>()));
+            _emailSender.Verify(s => s.EmailFile(_keeper.Email, _keeper.StatementEmailBody, _statementFileName, It.IsAny<string>()));
         }
 
         [Test]
@@ -91,30 +90,25 @@ namespace TestNinja.UnitTestsExtra.Mocking
         public void SendStatementEmails_StatementFileNameNullOrEmptyOrWhiteSpace_ShouldNotSendEmail(string statement)
         {
             // Arrange
-            _keeper.Email = statement;
-            _unitOfWork.Setup(un => un.Query<Housekeeper>()).Returns(new List<Housekeeper> {
-                _keeper
-            }.AsQueryable());
-
-            _statementGenerator.Setup(sg => sg.SaveStatement(_keeper.Oid, _keeper.FullName, new DateTime(2020, 10, 2))).Returns("ab");
+            _statementFileName = statement;
 
             // Act
-            _services.SendStatementEmails(new DateTime(2020, 10, 2));
+            _services.SendStatementEmails(date);
 
             // Assert
-            _emailSender.Verify(s => s.EmailFile(_keeper.Email, _keeper.StatementEmailBody, "ab", It.IsAny<string>()), Times.Never);
+            _emailSender.Verify(s => s.EmailFile(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()),
+                Times.Never);
         }
 
 
         [Test]
-        public void SendStatementEmails_ErrorOccerd_ShowMessageBox()
+        public void SendStatementEmails_ErrorOccured_ShowMessageBox()
         {
             // Arrange
-            _unitOfWork.Setup(un => un.Query<Housekeeper>()).Returns(new List<Housekeeper> {
-                _keeper
-            }.AsQueryable());
-
-            _statementGenerator.Setup(sg => sg.SaveStatement(_keeper.Oid, _keeper.FullName, new DateTime(2020, 10, 2))).Returns("something");
 
             _emailSender.Setup(es => es.EmailFile(
                 It.IsAny<string>(),
@@ -124,10 +118,13 @@ namespace TestNinja.UnitTestsExtra.Mocking
                 )).Throws<Exception>();
 
             // Act
-            _services.SendStatementEmails(new DateTime(2020, 10, 2));
+            _services.SendStatementEmails(date);
 
             // Assert
-            _xtraMessageBox.Verify(s => s.Show(It.IsAny<string>(), It.IsAny<string>(), MessageBoxButtons.OK));
+            _xtraMessageBox.Verify(s => s.Show(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                MessageBoxButtons.OK));
         }
     }
 }
